@@ -1,0 +1,24 @@
+version: "3.8"
+
+services:
+  database_ignite: 
+    image: postgres
+    container_name: database_ignite
+    restart: always    
+    environment:
+      - POSTGRES_USER=docker
+      - POSTGRES_PASSWORD=ignite 
+      - POSTGRES_DB=rentalx
+    volumes:
+      - pgdata:/data/postgres
+    network_mode: host
+  app:
+    build: .
+    container_name: rentalx 
+    volumes: 
+      - .:/usr/app
+    network_mode: host
+
+volumes:
+  pgdata:
+    driver: local

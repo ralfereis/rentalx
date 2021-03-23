@@ -5,6 +5,7 @@
   "author": "Ralfe Reis <ralfe.cavalcante@gmail.com>",
   "license": "MIT",
   "scripts": {
+    "typeorm": "ts-node-dev ./node_modules/typeorm/cli",
     "dev": "ts-node-dev --inspect --transpile-only --ignore-watch node_modules --respawn --quiet --no-notify src/server.ts"
   },
   "devDependencies": {
@@ -29,7 +30,10 @@
     "csv-parse": "^4.15.3",
     "express": "^4.17.1",
     "multer": "^1.4.2",
+    "pg": "^8.5.1",
+    "reflect-metadata": "^0.1.13",
     "swagger-ui-express": "^4.1.6",
+    "typeorm": "^0.2.31",
     "uuid": "^8.3.2"
   }
 }
