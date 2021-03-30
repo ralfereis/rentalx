@@ -6,7 +6,7 @@
   "license": "MIT",
   "scripts": {
     "typeorm": "ts-node-dev r tsconfig-paths/register ./node_modules/typeorm/cli",
-    "dev": "ts-node-dev -r tsconfig-paths/register --inspect --transpile-only --ignore-watch node_modules --respawn --quiet --no-notify src/server.ts",
+    "dev": "ts-node-dev -r tsconfig-paths/register --inspect --transpile-only --ignore-watch node_modules --respawn --quiet --no-notify src/shared/infra/http/server.ts",
     "test": "jest --watch"
   },
   "devDependencies": {
