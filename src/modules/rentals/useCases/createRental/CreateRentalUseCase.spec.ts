@@ -1,33 +1,52 @@
-import { IRentalsRepository } from '@modules/rentals/repositories/IRentalsRepository';
+import { RentalsRepositoryInMemory } from '@modules/rentals/repositories/in-memory/RentalsRepositoryInMemory';
 import { AppError } from '@shared/errors/AppError';
 
-interface IRequest {
-  user_id: string;
-  car_id: string;
-  expected_return_date: Date;
-}
+import { CreateRentalUseCase } from './CreateRentalUseCase';
 
-class CreateRentalUseCase {
-  constructor(private rentalsRepository: IRentalsRepository) {}
+let createRentalUseCase: CreateRentalUseCase;
+let rentalRepositoryInMemory: RentalsRepositoryInMemory;
 
-  async execute({
-    user_id,
-    car_id,
-    expected_return_date,
-  }: IRequest): Promise<void> {
-    const carUnavailable = await this.rentalsRepository.findOpenRentalByCar(
-      car_id,
-    );
-    if (carUnavailable) {
-      throw new AppError('Car is unavailable');
-    }
-    const rentalCarOpenToUser = await this.rentalsRepository.findOpenRentalByUser(
-      user_id,
-    );
-    if (rentalCarOpenToUser) {
-      throw new AppError('There is a rental in progress for this user');
-    }
-  }
-}
+describe('Create Rental', () => {
+  beforeEach(() => {
+    rentalRepositoryInMemory = new RentalsRepositoryInMemory();
+    createRentalUseCase = new CreateRentalUseCase(rentalRepositoryInMemory);
+  });
+  test('Should be able to create a new rental', async () => {
+    const rental = await createRentalUseCase.execute({
+      user_id: '12345',
+      car_id: '121212',
+      expected_return_date: new Date(),
+    });
+    expect(rental).toHaveProperty('id');
+    expect(rental).toHaveProperty('start_date');
+  });
+  test('Should not be possible to rent a car if the user has an open rental ', async () => {
+    expect(async () => {
+      await createRentalUseCase.execute({
+        user_id: '12345',
+        car_id: '121212',
+        expected_return_date: new Date(),
+      });
+      await createRentalUseCase.execute({
+        user_id: '12345',
+        car_id: '121212',
+        expected_return_date: new Date(),
+      });
+    }).rejects.toBeInstanceOf(AppError);
+  });
 
-export { CreateRentalUseCase };
+  test('should not be possible to rent a car that is already rented', async () => {
+    expect(async () => {
+      await createRentalUseCase.execute({
+        user_id: '12345',
+        car_id: '121212',
+        expected_return_date: new Date(),
+      });
+      await createRentalUseCase.execute({
+        user_id: '12345',
+        car_id: '121212',
+        expected_return_date: new Date(),
+      });
+    }).rejects.toBeInstanceOf(AppError);
+  });
+});

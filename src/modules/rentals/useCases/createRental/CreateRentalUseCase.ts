@@ -1,20 +1,40 @@
-import { RentalsRepositoryInMemory } from '@modules/rentals/repositories/in-memory/RentalsRepositoryInMemory';
+import { Rental } from '@modules/rentals/infra/typeorm/entities/Rental';
+import { IRentalsRepository } from '@modules/rentals/repositories/IRentalsRepository';
+import { AppError } from '@shared/errors/AppError';
 
-import { CreateRentalUseCase } from './CreateRentalUseCase.spec';
+interface IRequest {
+  user_id: string;
+  car_id: string;
+  expected_return_date: Date;
+}
 
-let createRentalUseCase: CreateRentalUseCase;
-let rentalRepositoryInMemory: RentalsRepositoryInMemory;
+class CreateRentalUseCase {
+  constructor(private rentalsRepository: IRentalsRepository) {}
 
-describe('Create Rental', () => {
-  beforeEach(() => {
-    rentalRepositoryInMemory = new RentalsRepositoryInMemory();
-    createRentalUseCase = new CreateRentalUseCase(rentalRepositoryInMemory);
-  });
-  test('Should be able to create a new rental', async () => {
-    await createRentalUseCase.execute({
-      user_id: '12345',
-      car_id: '121212',
-      expected_return_date: new Date(),
+  async execute({
+    user_id,
+    car_id,
+    expected_return_date,
+  }: IRequest): Promise<Rental> {
+    const carUnavailable = await this.rentalsRepository.findOpenRentalByCar(
+      car_id,
+    );
+    if (carUnavailable) {
+      throw new AppError('Car is unavailable');
+    }
+    const rentalCarOpenToUser = await this.rentalsRepository.findOpenRentalByUser(
+      user_id,
+    );
+    if (rentalCarOpenToUser) {
+      throw new AppError('There is a rental in progress for this user');
+    }
+    const rental = await this.rentalsRepository.create({
+      user_id,
+      car_id,
+      expected_return_date,
     });
-  });
-});
+    return rental;
+  }
+}
+
+export { CreateRentalUseCase };
